@@ -103,7 +103,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link
             href="/deposit"
             className="bg-gray-800/50 backdrop-blur-lg border border-purple-500/20 rounded-xl p-6 hover:border-yellow-400 transition-all transform hover:scale-105"
@@ -130,6 +130,21 @@ export default function DashboardPage() {
               <div>
                 <h3 className="text-white font-bold text-lg">Withdraw</h3>
                 <p className="text-gray-400 text-sm">Cash out your winnings</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/favorites"
+            className="bg-gray-800/50 backdrop-blur-lg border border-purple-500/20 rounded-xl p-6 hover:border-yellow-400 transition-all transform hover:scale-105"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                <span className="text-2xl">❤️</span>
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg">Favorites</h3>
+                <p className="text-gray-400 text-sm">Your favorite games</p>
               </div>
             </div>
           </Link>

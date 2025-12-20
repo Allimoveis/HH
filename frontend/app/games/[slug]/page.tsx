@@ -11,11 +11,13 @@ import { useAuth } from '@/lib/auth-context';
 export default function GameDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token, user } = useAuth();
   const [game, setGame] = useState<Game | null>(null);
   const [similarGames, setSimilarGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -26,6 +28,16 @@ export default function GameDetailPage() {
         
         if (gameData._id) {
           setGame(gameData);
+          
+          // Check if game is in user's favorites
+          if (isAuthenticated && token && user) {
+            try {
+              const profileData = await api.user.getProfile(token);
+              setIsFavorite(profileData.favoriteGames?.includes(gameData._id) || false);
+            } catch {
+              // If profile fetch fails, just continue without favorite status
+            }
+          }
           
           const allGames = await api.games.getAll({ category: gameData.category });
           const similar = allGames.filter((g: Game) => g._id !== gameData._id).slice(0, 4);
@@ -41,7 +53,7 @@ export default function GameDetailPage() {
     };
 
     fetchGameData();
-  }, [params.slug]);
+  }, [params.slug, isAuthenticated, token, user]);
 
   const handlePlayGame = (mode: 'real' | 'demo') => {
     if (mode === 'real' && !isAuthenticated) {
@@ -50,6 +62,25 @@ export default function GameDetailPage() {
     }
     // In a real app, this would launch the game
     alert(`Launching ${game?.title} in ${mode} mode!`);
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated || !token) {
+      router.push('/login');
+      return;
+    }
+
+    if (!game) return;
+
+    setFavoriteLoading(true);
+    try {
+      await api.user.toggleFavorite(token, game._id);
+      setIsFavorite(!isFavorite);
+    } catch {
+      alert('Failed to update favorites. Please try again.');
+    } finally {
+      setFavoriteLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -155,6 +186,18 @@ export default function GameDetailPage() {
                       Try Demo
                     </button>
                   )}
+                  <button
+                    onClick={handleToggleFavorite}
+                    disabled={favoriteLoading}
+                    className={`py-4 px-6 font-bold text-lg rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 ${
+                      isFavorite
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-gray-700 hover:bg-gray-600 text-white'
+                    }`}
+                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favoriteLoading ? '...' : isFavorite ? '❤️' : '🤍'}
+                  </button>
                 </div>
               </div>
             </div>
