@@ -101,8 +101,8 @@ export const uploadKYCDocument = async (req: AuthRequest, res: Response) => {
       user.kycDocuments = [];
     }
     
-    // Store document with type prefix
-    const documentEntry = `${documentType}:${documentUrl}`;
+    // Store document as JSON string with type and URL
+    const documentEntry = JSON.stringify({ type: documentType, url: documentUrl, uploadedAt: new Date() });
     user.kycDocuments.push(documentEntry);
     
     // Update KYC status to pending if not already verified

@@ -105,7 +105,7 @@ function KYCPageContent() {
         try {
           const response = await api.user.uploadKYCDocument(token, documentType, base64Data);
           
-          if (response.message) {
+          if (response.message && response.message.includes('successfully')) {
             setSuccess('Document uploaded successfully! Your KYC verification is pending review.');
             setDocumentType('');
             setSelectedFile(null);
@@ -119,7 +119,7 @@ function KYCPageContent() {
               setKycStatus(response.kycStatus);
             }
           } else {
-            setError(response.message || 'Failed to upload document');
+            setError('Failed to upload document. Please try again.');
           }
         } catch (err) {
           setError('Failed to upload document. Please try again.');
@@ -266,16 +266,31 @@ function KYCPageContent() {
             <h2 className="text-2xl font-semibold text-white mb-4">Uploaded Documents</h2>
             <div className="space-y-3">
               {documents.map((doc, index) => {
-                const [type] = doc.split(':');
+                let type = 'Unknown';
+                let uploadedAt = '';
+                try {
+                  const parsed = JSON.parse(doc);
+                  type = parsed.type || 'Unknown';
+                  if (parsed.uploadedAt) {
+                    uploadedAt = new Date(parsed.uploadedAt).toLocaleDateString();
+                  }
+                } catch {
+                  // Fallback for old format (type:url)
+                  const parts = doc.split(':');
+                  type = parts[0] || 'Unknown';
+                }
+                
                 return (
                   <div key={index} className="bg-white/5 p-4 rounded-lg flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="text-yellow-400 text-2xl">📄</div>
                       <div>
                         <p className="text-white font-medium capitalize">
-                          {type.replace('_', ' ')}
+                          {type.replace(/_/g, ' ')}
                         </p>
-                        <p className="text-gray-400 text-sm">Document #{index + 1}</p>
+                        <p className="text-gray-400 text-sm">
+                          {uploadedAt ? `Uploaded: ${uploadedAt}` : `Document #${index + 1}`}
+                        </p>
                       </div>
                     </div>
                     <div className="text-green-400 text-sm">✓ Uploaded</div>
